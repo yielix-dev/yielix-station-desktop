@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YIELIX Station Setup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-app-region: drag;
+    }
+
+    .container {
+      -webkit-app-region: no-drag;
+      width: 100%;
+      max-width: 360px;
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #FF8B3D;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 40px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #aaa;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      background: #16213e;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: #FF8B3D;
+    }
+
+    .form-group input::placeholder {
+      color: #555;
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .connect-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #FF8B3D;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 10px;
+    }
+
+    .connect-btn:hover {
+      background: #E67830;
+    }
+
+    .connect-btn:active {
+      background: #CC6625;
+      transform: scale(0.98);
+    }
+
+    .connect-btn:disabled {
+      background: #444;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-msg {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      margin: 24px 0;
+      color: #555;
+      font-size: 12px;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #333;
+    }
+
+    .or-divider span {
+      padding: 0 12px;
+    }
+
+    .url-input-group {
+      position: relative;
+    }
+
+    .url-prefix {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #555;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .info-section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #2a2a3e;
+    }
+
+    .info-section p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">YIELIX</div>
+    <div class="subtitle">Station Desktop App</div>
+
+    <div class="form-group">
+      <label>Station URL</label>
+      <input
+        type="text"
+        id="urlInput"
+        placeholder="https://yielix.com.au/station/your-id"
+        spellcheck="false"
+        autocomplete="off"
+      >
+      <div class="helper-text">
+        Paste the full station URL from your YIELIX admin settings.
+      </div>
+    </div>
+
+    <div class="or-divider"><span>OR</span></div>
+
+    <div class="form-group">
+      <label>Restaurant ID</label>
+      <input
+        type="text"
+        id="idInput"
+        placeholder="Enter your restaurant ID"
+        spellcheck="false"
+        autocomplete="off"
+      >
+      <div class="helper-text">
+        Found in your YIELIX admin under Settings > StaffApp.
+      </div>
+    </div>
+
+    <button class="connect-btn" id="connectBtn" disabled>
+      Connect
+    </button>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="info-section">
+      <p>
+        This app connects to your YIELIX StaffApp and keeps it running
+        in the system tray. Alerts will pop up even when the window is hidden.
+        Right-click the tray icon for options.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const urlInput = document.getElementById('urlInput');
+    const idInput = document.getElementById('idInput');
+    const connectBtn = document.getElementById('connectBtn');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // Base URLs (production and test)
+    const PROD_BASE = 'https://yielix.com.au';
+    const TEST_BASE = 'https://yielix-test.web.app';
+
+    function getBaseUrl() {
+      // Default to production
+      return PROD_BASE;
+    }
+
+    // Enable button when either input has content
+    function updateButtonState() {
+      const hasUrl = urlInput.value.trim().length > 0;
+      const hasId = idInput.value.trim().length > 0;
+      connectBtn.disabled = !(hasUrl || hasId);
+      errorMsg.style.display = 'none';
+    }
+
+    urlInput.addEventListener('input', () => {
+      if (urlInput.value.trim()) idInput.value = '';
+      updateButtonState();
+    });
+
+    idInput.addEventListener('input', () => {
+      if (idInput.value.trim()) urlInput.value = '';
+      updateButtonState();
+    });
+
+    // Allow Enter key to submit
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !connectBtn.disabled) connectBtn.click();
+    });
+    idInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !connectBtn.disabled) connectBtn.click();
+    });
+
+    connectBtn.addEventListener('click', async () => {
+      let finalUrl = '';
+
+      const rawUrl = urlInput.value.trim();
+      const rawId = idInput.value.trim();
+
+      if (rawUrl) {
+        // Validate URL format
+        if (rawUrl.includes('/station/')) {
+          finalUrl = rawUrl;
+          // Ensure https
+          if (!finalUrl.startsWith('http')) {
+            finalUrl = 'https://' + finalUrl;
+          }
+        } else {
+          errorMsg.textContent = 'URL must contain /station/ path. Example: https://yielix.com.au/station/your-id';
+          errorMsg.style.display = 'block';
+          return;
+        }
+      } else if (rawId) {
+        // Construct URL from restaurant ID
+        finalUrl = `${getBaseUrl()}/station/${rawId}`;
+      }
+
+      if (!finalUrl) {
+        errorMsg.textContent = 'Please enter a station URL or restaurant ID.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      // Save and load
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Connecting...';
+
+      try {
+        await window.electronAPI.saveStationUrl(finalUrl);
+      } catch (err) {
+        errorMsg.textContent = 'Failed to save URL. Please try again.';
+        errorMsg.style.display = 'block';
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Connect';
+      }
+    });
+  </script>
+</body>
+</html>
