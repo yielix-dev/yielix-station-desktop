@@ -34,7 +34,7 @@ function createMainWindow() {
     minWidth: 360,
     minHeight: 500,
     alwaysOnTop: alwaysOnTop,
-    title: 'YIELIX Station',
+    title: 'YIELIX StaffApp',
     icon: getAppIcon(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -134,7 +134,7 @@ function getTrayIcon() {
 
 function createTray() {
   tray = new Tray(getTrayIcon());
-  tray.setToolTip('YIELIX Station');
+  tray.setToolTip('YIELIX StaffApp');
 
   updateTrayMenu();
 
@@ -157,7 +157,7 @@ function updateTrayMenu() {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show YIELIX Station',
+      label: 'Show StaffApp',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -206,7 +206,7 @@ function updateTrayMenu() {
     },
     { type: 'separator' },
     {
-      label: 'Quit YIELIX Station',
+      label: 'Quit StaffApp',
       click: () => {
         isQuitting = true;
         app.quit();

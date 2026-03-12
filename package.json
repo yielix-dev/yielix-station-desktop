@@ -1,7 +1,7 @@
 {
-  "name": "yielix-station-desktop",
-  "version": "1.0.0",
-  "description": "YIELIX StaffApp Desktop - Real-time venue alerts for your POS",
+  "name": "yielix-staffapp",
+  "version": "1.1.0",
+  "description": "YIELIX StaffApp - Real-time venue alerts for your POS",
   "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -14,25 +14,28 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "YIELIX Station",
-        "executableName": "yielix-station",
+        "name": "YIELIX StaffApp",
+        "executableName": "yielix-staffapp",
         "icon": "./assets/icon",
-        "appBundleId": "com.yielix.station",
-        "appCategoryType": "public.app-category.business"
+        "appBundleId": "com.yielix.staffapp",
+        "appCategoryType": "public.app-category.business",
+        "osxSign": false
       },
       "makers": [
         {
           "name": "@electron-forge/maker-dmg",
           "config": {
             "format": "ULFO",
-            "name": "YIELIX-Station"
+            "name": "YIELIX-StaffApp",
+            "icon": "./assets/icon.icns"
           }
         },
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "YIELIX-Station",
-            "setupExe": "YIELIX-Station-Setup.exe"
+            "name": "YIELIX-StaffApp",
+            "setupExe": "YIELIX-StaffApp-Setup.exe",
+            "setupIcon": "./assets/icon.ico"
           }
         },
         {
