@@ -46,10 +46,12 @@ function createMainWindow() {
   });
 
   // Load station URL or setup screen
+  // Validate that stored URL contains /station/ to prevent loading the main portal
   const stationUrl = store.get('stationUrl');
-  if (stationUrl) {
+  if (stationUrl && stationUrl.includes('/station/')) {
     mainWindow.loadURL(stationUrl);
   } else {
+    if (stationUrl) store.set('stationUrl', ''); // Clear invalid stored URL
     mainWindow.loadFile(path.join(__dirname, 'setup.html'));
   }
 
