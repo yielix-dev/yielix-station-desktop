@@ -122,39 +122,6 @@
       display: none;
     }
 
-    .or-divider {
-      display: flex;
-      align-items: center;
-      margin: 24px 0;
-      color: #555;
-      font-size: 12px;
-    }
-
-    .or-divider::before,
-    .or-divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #333;
-    }
-
-    .or-divider span {
-      padding: 0 12px;
-    }
-
-    .url-input-group {
-      position: relative;
-    }
-
-    .url-prefix {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #555;
-      font-size: 14px;
-      pointer-events: none;
-    }
-
     .info-section {
       margin-top: 30px;
       padding-top: 20px;
@@ -166,6 +133,35 @@
       color: #666;
       line-height: 1.5;
     }
+
+    .steps {
+      text-align: left;
+      margin-bottom: 28px;
+    }
+
+    .step {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #999;
+      line-height: 1.4;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FF8B3D22;
+      color: #FF8B3D;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
   </style>
 </head>
 <body>
@@ -173,33 +169,32 @@
     <div class="logo">YIELIX</div>
     <div class="subtitle">StaffApp Desktop</div>
 
-    <div class="form-group">
-      <label>Station URL</label>
-      <input
-        type="text"
-        id="urlInput"
-        placeholder="https://yielix.com.au/station/your-id"
-        spellcheck="false"
-        autocomplete="off"
-      >
-      <div class="helper-text">
-        Paste the full station URL from your YIELIX admin settings.
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>Open your YIELIX admin panel and go to <strong style="color:#ccc">Settings</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>Under <strong style="color:#ccc">StaffApp</strong>, copy the StaffApp URL</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>Paste it below and click Connect</div>
       </div>
     </div>
 
-    <div class="or-divider"><span>OR</span></div>
-
     <div class="form-group">
-      <label>Restaurant ID</label>
+      <label>StaffApp URL</label>
       <input
         type="text"
-        id="idInput"
-        placeholder="Enter your restaurant ID"
+        id="urlInput"
+        placeholder="Paste your StaffApp URL here"
         spellcheck="false"
         autocomplete="off"
       >
       <div class="helper-text">
-        Found in your YIELIX admin under Settings > StaffApp.
+        Your staff will then enter their staff code on the next screen.
       </div>
     </div>
 
@@ -211,92 +206,64 @@
 
     <div class="info-section">
       <p>
-        This app connects to your YIELIX StaffApp and keeps it running
-        in the system tray. Alerts will pop up even when the window is hidden.
-        Right-click the tray icon for options.
+        This app keeps your StaffApp running in the system tray with
+        always-on-top alerts. Right-click the tray icon for options.
       </p>
     </div>
   </div>
 
   <script>
     const urlInput = document.getElementById('urlInput');
-    const idInput = document.getElementById('idInput');
     const connectBtn = document.getElementById('connectBtn');
     const errorMsg = document.getElementById('errorMsg');
 
-    // Base URLs (production and test)
     const PROD_BASE = 'https://yielix.com.au';
     const TEST_BASE = 'https://yielix-test.web.app';
 
-    function getBaseUrl() {
-      // Default to production
-      return PROD_BASE;
-    }
-
-    // Enable button when either input has content
     function updateButtonState() {
-      const hasUrl = urlInput.value.trim().length > 0;
-      const hasId = idInput.value.trim().length > 0;
-      connectBtn.disabled = !(hasUrl || hasId);
+      connectBtn.disabled = urlInput.value.trim().length === 0;
       errorMsg.style.display = 'none';
     }
 
-    urlInput.addEventListener('input', () => {
-      if (urlInput.value.trim()) idInput.value = '';
-      updateButtonState();
-    });
+    urlInput.addEventListener('input', updateButtonState);
 
-    idInput.addEventListener('input', () => {
-      if (idInput.value.trim()) urlInput.value = '';
-      updateButtonState();
-    });
-
-    // Allow Enter key to submit
     urlInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !connectBtn.disabled) connectBtn.click();
-    });
-    idInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !connectBtn.disabled) connectBtn.click();
     });
 
     connectBtn.addEventListener('click', async () => {
       let finalUrl = '';
+      const raw = urlInput.value.trim();
 
-      const rawUrl = urlInput.value.trim();
-      const rawId = idInput.value.trim();
-
-      if (rawUrl) {
-        // Validate URL format
-        if (rawUrl.includes('/station/')) {
-          finalUrl = rawUrl;
-          // Ensure https
-          if (!finalUrl.startsWith('http')) {
-            finalUrl = 'https://' + finalUrl;
-          }
-        } else {
-          errorMsg.textContent = 'URL must contain /station/ path. Example: https://yielix.com.au/station/your-id';
-          errorMsg.style.display = 'block';
-          return;
+      if (raw.includes('/station/')) {
+        // Full or partial URL with /station/ path
+        finalUrl = raw;
+        if (!finalUrl.startsWith('http')) {
+          finalUrl = 'https://' + finalUrl;
         }
-      } else if (rawId) {
-        // Construct URL from restaurant ID
-        finalUrl = `${getBaseUrl()}/station/${rawId}`;
+      } else if (raw.startsWith('http')) {
+        // A URL but missing /station/ path
+        errorMsg.textContent = 'This URL does not look like a StaffApp URL. It should contain /station/ in the path.';
+        errorMsg.style.display = 'block';
+        return;
+      } else {
+        // Treat as a restaurant ID and construct the URL
+        finalUrl = `${PROD_BASE}/station/${raw}`;
       }
 
       if (!finalUrl) {
-        errorMsg.textContent = 'Please enter a station URL or restaurant ID.';
+        errorMsg.textContent = 'Please enter your StaffApp URL.';
         errorMsg.style.display = 'block';
         return;
       }
 
-      // Save and load
       connectBtn.disabled = true;
       connectBtn.textContent = 'Connecting...';
 
       try {
         await window.electronAPI.saveStationUrl(finalUrl);
       } catch (err) {
-        errorMsg.textContent = 'Failed to save URL. Please try again.';
+        errorMsg.textContent = 'Failed to save. Please try again.';
         errorMsg.style.display = 'block';
         connectBtn.disabled = false;
         connectBtn.textContent = 'Connect';
