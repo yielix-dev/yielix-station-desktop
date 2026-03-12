@@ -46,9 +46,25 @@ function createMainWindow() {
   });
 
   // Load station URL or setup screen
-  // Validate stored URL: accept /station/ path or station subdomain
-  const stationUrl = store.get('stationUrl');
-  if (stationUrl && (stationUrl.includes('/station/') || stationUrl.includes('staffapp.yielix') || stationUrl.includes('yielix-station'))) {
+  let stationUrl = store.get('stationUrl');
+
+  // Migrate old /station/ URLs to new subdomain format
+  if (stationUrl && stationUrl.includes('/station/')) {
+    const parts = stationUrl.split('/station/');
+    const restaurantId = parts[1] ? parts[1].replace(/\/$/, '') : '';
+    if (restaurantId) {
+      const isTest = stationUrl.includes('yielix-test') || stationUrl.includes('localhost');
+      const newBase = isTest ? 'https://yielix-station-test.web.app' : 'https://staffapp.yielix.com.au';
+      stationUrl = `${newBase}/${restaurantId}`;
+      store.set('stationUrl', stationUrl);
+    } else {
+      stationUrl = '';
+      store.set('stationUrl', '');
+    }
+  }
+
+  // Validate stored URL: must be a station subdomain
+  if (stationUrl && (stationUrl.includes('staffapp.yielix') || stationUrl.includes('yielix-station'))) {
     mainWindow.loadURL(stationUrl);
   } else {
     if (stationUrl) store.set('stationUrl', ''); // Clear invalid stored URL
