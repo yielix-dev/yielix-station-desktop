@@ -217,8 +217,8 @@
     const connectBtn = document.getElementById('connectBtn');
     const errorMsg = document.getElementById('errorMsg');
 
-    const PROD_BASE = 'https://yielix.com.au';
-    const TEST_BASE = 'https://yielix-test.web.app';
+    const PROD_BASE = 'https://staffapp.yielix.com.au';
+    const TEST_BASE = 'https://yielix-station-test.web.app';
 
     function updateButtonState() {
       connectBtn.disabled = urlInput.value.trim().length === 0;
@@ -236,19 +236,29 @@
       const raw = urlInput.value.trim();
 
       if (raw.includes('/station/')) {
-        // Full or partial URL with /station/ path
-        finalUrl = raw;
-        if (!finalUrl.startsWith('http')) {
-          finalUrl = 'https://' + finalUrl;
+        // Legacy full URL with /station/ path - convert to new subdomain format
+        try {
+          const parsed = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
+          const restaurantId = parsed.pathname.split('/station/')[1];
+          if (restaurantId) {
+            finalUrl = `${PROD_BASE}/${restaurantId}`;
+          }
+        } catch {
+          finalUrl = raw;
+          if (!finalUrl.startsWith('http')) finalUrl = 'https://' + finalUrl;
         }
       } else if (raw.startsWith('http')) {
-        // A URL but missing /station/ path
-        errorMsg.textContent = 'This URL does not look like a StaffApp URL. It should contain /station/ in the path.';
-        errorMsg.style.display = 'block';
-        return;
+        // A URL - check if it is a station subdomain URL
+        if (raw.includes('staffapp.yielix') || raw.includes('yielix-station')) {
+          finalUrl = raw;
+        } else {
+          errorMsg.textContent = 'This URL does not look like a StaffApp URL.';
+          errorMsg.style.display = 'block';
+          return;
+        }
       } else {
         // Treat as a restaurant ID and construct the URL
-        finalUrl = `${PROD_BASE}/station/${raw}`;
+        finalUrl = `${PROD_BASE}/${raw}`;
       }
 
       if (!finalUrl) {

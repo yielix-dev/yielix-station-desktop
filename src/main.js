@@ -46,9 +46,9 @@ function createMainWindow() {
   });
 
   // Load station URL or setup screen
-  // Validate that stored URL contains /station/ to prevent loading the main portal
+  // Validate stored URL: accept /station/ path or station subdomain
   const stationUrl = store.get('stationUrl');
-  if (stationUrl && stationUrl.includes('/station/')) {
+  if (stationUrl && (stationUrl.includes('/station/') || stationUrl.includes('staffapp.yielix') || stationUrl.includes('yielix-station'))) {
     mainWindow.loadURL(stationUrl);
   } else {
     if (stationUrl) store.set('stationUrl', ''); // Clear invalid stored URL
@@ -77,7 +77,7 @@ function createMainWindow() {
 
   // Open external links in default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http') && !url.includes('/station/')) {
+    if (url.startsWith('http') && !url.includes('/station/') && !url.includes('staffapp.yielix') && !url.includes('yielix-station')) {
       shell.openExternal(url);
       return { action: 'deny' };
     }
