@@ -1,6 +1,6 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, shell } = require('electron');
 const path = require('path');
-const Store = require('electron-store').default || require('electron-store');
+const Store = require('electron-store');
 
 // Prevent multiple instances
 const gotTheLock = app.requestSingleInstanceLock();
